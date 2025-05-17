@@ -1,8 +1,25 @@
-# AlphaEvolve Pro: Regenerating Autonomous Algorithmic Discovery 🚀
+# OpenAplha_Evolve: Regenerating Autonomous Algorithmic Discovery 🚀
 
 **Unlock the power of Large Language Models and Evolutionary Computation to tackle complex algorithmic challenges!**
 
-AlphaEvolve Pro is an open-source Python framework inspired by the groundbreaking research on autonomous coding agents like DeepMind's AlphaEvolve. It's a **regeneration** of the core idea: an intelligent system that iteratively writes, tests, and improves code using Large Language Models (LLMs) like Google's Gemini, guided by the principles of evolution.
+OpenAplha_Evolve is an open-source Python framework inspired by the groundbreaking research on autonomous coding agents like DeepMind's AlphaEvolve. It's a **regeneration** of the core idea: an intelligent system that iteratively writes, tests, and improves code using Large Language Models (LLMs) like Google's Gemini, guided by the principles of evolution.
+
+```
+High-Level Flow:
+
++---------------------+      +-----------------------+      +--------------------+
+|   Task Definition   |----->|  Prompt Engineering   |----->|  Code Generation   |
+| (User Input)        |      | (PromptDesignerAgent) |      | (LLM / Gemini)     |
++---------------------+      +-----------------------+      +--------------------+
+          ^                                                          |
+          |                                                          |
+          |                                                          V
++---------------------+      +-----------------------+      +--------------------+
+| Select Survivors &  |<-----|   Fitness Evaluation  |<-----|   Execute & Test   |
+| Next Generation     |      | (EvaluatorAgent)      |      | (EvaluatorAgent)   |
++---------------------+      +-----------------------+      +--------------------+
+       (Evolutionary Loop Continues)
+```
 
 Our mission is to provide an accessible, understandable, and extensible platform for researchers, developers, and enthusiasts to explore the fascinating intersection of AI, code generation, and automated problem-solving.
 
@@ -20,13 +37,13 @@ Imagine an agent that can:
 *   Learn from failures and successes.
 *   Evolve increasingly sophisticated and efficient algorithms over time.
 
-AlphaEvolve Pro is a step towards this vision. It's not just about generating code; it's about creating a system that *discovers* and *refines* solutions autonomously.
+OpenAplha_Evolve is a step towards this vision. It's not just about generating code; it's about creating a system that *discovers* and *refines* solutions autonomously.
 
 ---
 
 ## 🧠 How It Works: The Evolutionary Cycle
 
-AlphaEvolve Pro employs a modular, agent-based architecture to orchestrate an evolutionary process:
+OpenAplha_Evolve employs a modular, agent-based architecture to orchestrate an evolutionary process:
 
 1.  **Task Definition**: You, the user, define the algorithmic "quest" – the problem to be solved, including examples of inputs and expected outputs.
 2.  **Prompt Engineering (`PromptDesignerAgent`)**: This agent crafts intelligent prompts for the LLM. It designs:
@@ -62,7 +79,7 @@ AlphaEvolve Pro employs a modular, agent-based architecture to orchestrate an ev
 ## 📂 Project Structure
 
 ```
-alpha_evolve_pro/
+OpenAplha_Evolve/
 ├── agents/                  # Core intelligent agents
 │   ├── code_generator/
 │   ├── database_agent/
@@ -93,8 +110,8 @@ alpha_evolve_pro/
 
 2.  **Clone the Repository**:
     ```bash
-    git clone <your_repository_url_here> # Replace with your GitHub repo URL
-    cd alpha-evolve-pro
+    git clone https://github.com/shyamsaktawat/OpenAplha_Evolve.git # MODIFIED URL
+    cd OpenAplha_Evolve # MODIFIED directory name
     ```
 
 3.  **Set Up a Virtual Environment** (recommended):
@@ -119,10 +136,10 @@ alpha_evolve_pro/
         ```
         *Obtain your API key from Google AI Studio.*
 
-6.  **Run AlphaEvolve Pro!**
+6.  **Run OpenAplha_Evolve!**
     The `main.py` file is configured with an example task (Dijkstra's algorithm). To run it:
     ```bash
-    python -m alpha_evolve_pro.main
+    python -m main # Or python main.py - check based on your new structure
     ```
     Watch the logs to see the evolutionary process unfold!
 
@@ -130,9 +147,9 @@ alpha_evolve_pro/
 
 ## 💡 Defining Your Own Algorithmic Quests!
 
-Want to challenge AlphaEvolve Pro with a new problem? It's easy:
+Want to challenge OpenAplha_Evolve with a new problem? It's easy:
 
-1.  **Open `alpha_evolve_pro/main.py`**.
+1.  **Open `main.py`**.
 2.  **Modify the `TaskDefinition`**:
     *   `id`: A unique identifier for your task.
     *   `description`: A clear, detailed natural language description of the problem. This is crucial for the LLM to understand what to do.
@@ -152,7 +169,7 @@ The quality of your `description` and `input_output_examples` significantly impa
 
 ## 🔮 The Horizon: Future Evolution
 
-AlphaEvolve Pro is a living project. Here are some directions we're excited to explore (and invite contributions for!):
+OpenAplha_Evolve is a living project. Here are some directions we're excited to explore (and invite contributions for!):
 
 *   **Advanced Evaluation Sandboxing**: Implementing robust, secure sandboxing (e.g., using Docker or other isolation technologies) for code execution to handle potentially unsafe code and complex dependencies.
 *   **Sophisticated Fitness Metrics**: Beyond correctness and basic runtime, incorporating checks for code complexity, style, resource usage, and custom domain-specific metrics.
@@ -160,7 +177,7 @@ AlphaEvolve Pro is a living project. Here are some directions we're excited to e
 *   **Enhanced Monitoring & Visualization**: Developing tools (via `MonitoringAgent`) to visualize the evolutionary process, track fitness landscapes, and understand agent behavior.
 *   **Broader LLM Support**: Adding easy integrations for other powerful LLMs.
 *   **Self-Correction & Reflection**: Enabling the agent to analyze its own failures more deeply and refine its problem-solving approach.
-*   **Diverse Task Domains**: Applying AlphaEvolve Pro to a wider range of problems in science, engineering, and creative coding.
+*   **Diverse Task Domains**: Applying OpenAplha_Evolve to a wider range of problems in science, engineering, and creative coding.
 *   **Community-Driven Task Library**: Building a collection of interesting and challenging tasks contributed by the community.
 
 ---
@@ -170,7 +187,7 @@ AlphaEvolve Pro is a living project. Here are some directions we're excited to e
 This is an open invitation to collaborate! Whether you're an AI researcher, a Python developer, or simply an enthusiast, your contributions are welcome.
 
 *   **Report Bugs**: Find an issue? Let us know!
-*   **Suggest Features**: Have an idea to make AlphaEvolve Pro better? Share it!
+*   **Suggest Features**: Have an idea to make OpenAplha_Evolve better? Share it!
 *   **Submit Pull Requests**:
     *   Fork the repository.
     *   Create a new branch for your feature or bugfix.
@@ -190,7 +207,7 @@ This project is licensed under the **MIT License**. See the `LICENSE` file for d
 
 ## 🙏 Homage
 
-AlphaEvolve Pro is proudly inspired by the pioneering work of the Google DeepMind team on AlphaEvolve and other related research in LLM-driven code generation and automated discovery. This project aims to make the core concepts more accessible for broader experimentation and learning. We stand on the shoulders of giants.
+OpenAplha_Evolve is proudly inspired by the pioneering work of the Google DeepMind team on AlphaEvolve and other related research in LLM-driven code generation and automated discovery. This project aims to make the core concepts more accessible for broader experimentation and learning. We stand on the shoulders of giants.
 
 ---
 
