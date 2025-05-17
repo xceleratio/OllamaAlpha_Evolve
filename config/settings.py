@@ -18,7 +18,7 @@ if not GEMINI_API_KEY:
     # For local testing without a .env file, you can temporarily set it like:
     # GEMINI_API_KEY = "YOUR_ACTUAL_API_KEY_HERE"
     # print("Warning: GEMINI_API_KEY not found in .env. Using hardcoded fallback (unsafe for production).")
-    GEMINI_API_KEY = "AIzaSyBomg7YkzybPaydH6fBNA7TUPDTXokbMCk" # Replace with your actual key if testing locally without .env
+    GEMINI_API_KEY = "Your api key here" # Replace with your actual key if testing locally without .env
 
 # LLM Model Configuration
 GEMINI_PRO_MODEL_NAME = "gemini-2.5-flash-preview-04-17" # Using a more capable model
