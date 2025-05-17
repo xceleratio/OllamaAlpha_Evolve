@@ -1,0 +1,36 @@
+# Core Libraries
+google-generativeai  # For Gemini LLMs
+# langchain
+# langchain-google-genai # Or similar for Gemini integration
+python-dotenv # For managing environment variables
+
+# LLM Models & Frameworks
+# transformers
+# torch
+# accelerate
+# bitsandbytes # For quantization if needed
+# sentencepiece
+
+# Evolutionary Algorithms / RL
+# deap
+# pygad
+# ray[rllib]
+# stable-baselines3
+
+# Evaluation & Sandboxing
+# pytest
+# hypothesis
+# e2b-sdk  # For E2B sandbox
+# docker
+
+# Data Storage
+# psycopg2-binary  # For PostgreSQL
+# pymongo  # For MongoDB
+# dvc
+
+# Utilities
+# jinja2
+
+# API/Web (Optional, if exposing functionality)
+# fastapi
+# uvicorn 
