@@ -13,7 +13,7 @@ Our mission is to provide an accessible, understandable, and extensible platform
 
 ---
 
-## ✨ The Vision: AI-Driven Algorithmic Innovation
+##  The Vision: AI-Driven Algorithmic Innovation
 
 Imagine an agent that can:
 
@@ -27,7 +27,7 @@ OpenAplha_Evolve is a step towards this vision. It's not just about generating c
 
 ---
 
-## 🧠 How It Works: The Evolutionary Cycle
+##  How It Works: The Evolutionary Cycle
 
 OpenAplha_Evolve employs a modular, agent-based architecture to orchestrate an evolutionary process:
 
@@ -50,7 +50,7 @@ OpenAplha_Evolve employs a modular, agent-based architecture to orchestrate an e
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
 *   **LLM-Powered Code Generation**: Leverages state-of-the-art Large Language Models (Google Gemini integration included).
 *   **Evolutionary Algorithm Core**: Implements iterative improvement through selection, mutation (via prompting), and survival.
@@ -62,7 +62,7 @@ OpenAplha_Evolve employs a modular, agent-based architecture to orchestrate an e
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 OpenAplha_Evolve/
@@ -153,7 +153,7 @@ The quality of your `description` and `input_output_examples` significantly impa
 
 ---
 
-## 🔮 The Horizon: Future Evolution
+##  The Horizon: Future Evolution
 
 OpenAplha_Evolve is a living project. Here are some directions we're excited to explore (and invite contributions for!):
 
@@ -168,7 +168,7 @@ OpenAplha_Evolve is a living project. Here are some directions we're excited to 
 
 ---
 
-## 🤝 Join the Evolution: Contributing
+##  Join the Evolution: Contributing
 
 This is an open invitation to collaborate! Whether you're an AI researcher, a Python developer, or simply an enthusiast, your contributions are welcome.
 
@@ -185,13 +185,13 @@ Let's evolve this agent together!
 
 ---
 
-## 📜 License
+##  License
 
 This project is licensed under the **MIT License**. See the `LICENSE` file for details. (You'll need to create a `LICENSE` file with the MIT license text).
 
 ---
 
-## 🙏 Homage
+##  Homage
 
 OpenAplha_Evolve is proudly inspired by the pioneering work of the Google DeepMind team on AlphaEvolve and other related research in LLM-driven code generation and automated discovery. This project aims to make the core concepts more accessible for broader experimentation and learning. We stand on the shoulders of giants.
 
