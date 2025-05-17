@@ -3,23 +3,8 @@
 **Unlock the power of Large Language Models and Evolutionary Computation to tackle complex algorithmic challenges!**
 
 OpenAplha_Evolve is an open-source Python framework inspired by the groundbreaking research on autonomous coding agents like DeepMind's AlphaEvolve. It's a **regeneration** of the core idea: an intelligent system that iteratively writes, tests, and improves code using Large Language Models (LLMs) like Google's Gemini, guided by the principles of evolution.
+![image](https://github.com/user-attachments/assets/f988bb2f-3a9b-454f-ac13-b25f6087c6b5)
 
-```
-High-Level Flow:
-
-+---------------------+      +-----------------------+      +--------------------+
-|   Task Definition   |----->|  Prompt Engineering   |----->|  Code Generation   |
-| (User Input)        |      | (PromptDesignerAgent) |      | (LLM / Gemini)     |
-+---------------------+      +-----------------------+      +--------------------+
-          ^                                                          |
-          |                                                          |
-          |                                                          V
-+---------------------+      +-----------------------+      +--------------------+
-| Select Survivors &  |<-----|   Fitness Evaluation  |<-----|   Execute & Test   |
-| Next Generation     |      | (EvaluatorAgent)      |      | (EvaluatorAgent)   |
-+---------------------+      +-----------------------+      +--------------------+
-       (Evolutionary Loop Continues)
-```
 
 Our mission is to provide an accessible, understandable, and extensible platform for researchers, developers, and enthusiasts to explore the fascinating intersection of AI, code generation, and automated problem-solving.
 
