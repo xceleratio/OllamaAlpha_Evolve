@@ -1,8 +1,8 @@
-# OpenAplha_Evolve: Regenerating Autonomous Algorithmic Discovery 🚀
+# OpenAlpha_Evolve: Regenerating Autonomous Algorithmic Discovery 
 
 ![openalpha_evolve_workflow](https://github.com/user-attachments/assets/9d4709ad-0072-44ae-bbb5-7eea1c5fa08c)
 
-OpenAplha_Evolve is an open-source Python framework inspired by the groundbreaking research on autonomous coding agents like DeepMind's AlphaEvolve. It's a **regeneration** of the core idea: an intelligent system that iteratively writes, tests, and improves code using Large Language Models (LLMs) like Google's Gemini, guided by the principles of evolution.
+OpenAlpha_Evolve is an open-source Python framework inspired by the groundbreaking research on autonomous coding agents like DeepMind's AlphaEvolve. It's a **regeneration** of the core idea: an intelligent system that iteratively writes, tests, and improves code using Large Language Models (LLMs) like Google's Gemini, guided by the principles of evolution.
 
 
 
