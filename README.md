@@ -1,18 +1,17 @@
-# OpenAlpha_Evolve: Regenerating Autonomous Algorithmic Discovery 🚀
+# OllamaAlpha_Evolve: Regenerating Autonomous Algorithmic Discovery 🚀 on your OWN SERVER via OLLAMA
 
-![openalpha_evolve_workflow](https://github.com/user-attachments/assets/9d4709ad-0072-44ae-bbb5-7eea1c5fa08c)
+![OllamaAlpha_Evolve_workflow](https://github.com/user-attachments/assets/9d4709ad-0072-44ae-bbb5-7eea1c5fa08c)
 
-OpenAlpha_Evolve is an open-source Python framework inspired by the groundbreaking research on autonomous coding agents like DeepMind's AlphaEvolve. It's a **regeneration** of the core idea: an intelligent system that iteratively writes, tests, and improves code using Large Language Models (LLMs) like Google's Gemini, guided by the principles of evolution.
-
-Our mission is to provide an accessible, understandable, and extensible platform for researchers, developers, and enthusiasts to explore the fascinating intersection of AI, code generation, and automated problem-solving.
+OllamaAlpha_Evolve is freeing you from API constraints by running Alpha_Evolve on your own local AI at no cost.
+It is a fork of OpenAlpha_Evolve which is an open-source Python framework inspired by the groundbreaking research on autonomous coding agents like DeepMind's AlphaEvolve. It's a **regeneration** of the core idea: an intelligent system that iteratively writes, tests, and improves code using Large Language Models (LLMs) like Google's Gemini, guided by the principles of evolution.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 
 ---
 
-## ✨ The Vision: AI-Driven Algorithmic Innovation
+## ✨ The Vision: AI-Driven Algorithmic Innovation running on your private server
 
-Imagine an agent that can:
+Imagine an agent that can power this by your own ollama instance:
 
 *   Understand a complex problem description.
 *   Generate initial algorithmic solutions.
@@ -20,20 +19,20 @@ Imagine an agent that can:
 *   Learn from failures and successes.
 *   Evolve increasingly sophisticated and efficient algorithms over time.
 
-OpenAlpha_Evolve is a step towards this vision. It's not just about generating code; it's about creating a system that *discovers* and *refines* solutions autonomously.
+OllamaAlpha_Evolve is a step towards this vision. It's not just about generating code; it's about creating a system that *discovers* and *refines* solutions autonomously.
 
 ---
 
 ## 🧠 How It Works: The Evolutionary Cycle
 
-OpenAlpha_Evolve employs a modular, agent-based architecture to orchestrate an evolutionary process:
+OllamaAlpha_Evolve employs a modular, agent-based architecture to orchestrate an evolutionary process:
 
 1.  **Task Definition**: You, the user, define the algorithmic "quest" – the problem to be solved, including examples of inputs and expected outputs.
 2.  **Prompt Engineering (`PromptDesignerAgent`)**: This agent crafts intelligent prompts for the LLM. It designs:
     *   *Initial Prompts*: To generate the first set of candidate solutions.
     *   *Mutation Prompts*: To introduce variations and improvements to existing solutions, often requesting changes in a "diff" format.
     *   *Bug-Fix Prompts*: To guide the LLM in correcting errors from previous attempts, also typically expecting a "diff".
-3.  **Code Generation (`CodeGeneratorAgent`)**: Powered by an LLM (currently configured for Gemini), this agent takes the prompts and generates Python code. If a "diff" is requested and received, it attempts to apply the changes to the parent code.
+3.  **Code Generation (`CodeGeneratorAgent`)**: Powered by an LLM (currently configured for OLLAMA), this agent takes the prompts and generates Python code. If a "diff" is requested and received, it attempts to apply the changes to the parent code.
 4.  **Evaluation (`EvaluatorAgent`)**: The generated code is put to the test!
     *   *Syntax Check*: Is the code valid Python?
     *   *Execution*: The code is run in a temporary, isolated environment against the input/output examples defined in the task.
@@ -80,7 +79,6 @@ OpenAlpha_Evolve employs a modular, agent-based architecture to orchestrate an e
 ├── scripts/                 # Helper scripts (e.g., diagram generation)
 ├── main.py                  # Main entry point to run the system
 ├── requirements.txt         # Project dependencies
-├── .env.example             # Example for environment variables (copy to .env)
 ├── .gitignore               # Specifies intentionally untracked files that Git should ignore
 ├── LICENSE.md               # Project's license information (MIT License)
 └── README.md                # This file!
@@ -97,8 +95,8 @@ OpenAlpha_Evolve employs a modular, agent-based architecture to orchestrate an e
 
 2.  **Clone the Repository**:
     ```bash
-    git clone https://github.com/shyamsaktawat/OpenAlpha_Evolve.git
-    cd OpenAlpha_Evolve
+    git clone https://github.com/xceleratio/OllamaAlpha_Evolve.git
+    cd OllamaAlpha_Evolve
     ```
 
 3.  **Set Up a Virtual Environment** (recommended):
@@ -112,25 +110,13 @@ OpenAlpha_Evolve employs a modular, agent-based architecture to orchestrate an e
     pip install -r requirements.txt
     ```
 
-5.  **Set Up Environment Variables (Crucial for API Key)**:
-    *   Copy `.env.example` to a new file named `.env` in the project root:
-        ```bash
-        cp .env.example .env
-        ```
-    *   **Edit the `.env` file** and add your `GEMINI_API_KEY`:
-        ```env
-        GEMINI_API_KEY="YOUR_ACTUAL_GEMINI_API_KEY_HERE"
-        ```
-        *You can obtain your API key from [Google AI Studio](https://aistudio.google.com/app/apikey).*
-    *   The system will prioritize the key from the `.env` file. If it's not found, it will use a non-functional placeholder from `config/settings.py` and print a warning. **Ensure your `.env` file is correctly set up.**
-
-6.  **Review Configuration (Optional)**:
+5.  **Configure your OLLAMA in the settings / in case you have anything non standard:**:
     *   Open `config/settings.py`. Here you can:
-        *   Change the default LLM models used for generation (`GEMINI_PRO_MODEL_NAME`) and evaluation (`GEMINI_EVALUATION_MODEL`).
+        *   Change the default LLM models used for generation (`PRO_MODEL_NAME`) and evaluation (`EVALUATION_MODEL`).
         *   Adjust evolutionary parameters like `POPULATION_SIZE` and `GENERATIONS`.
-        *   Modify API retry settings or logging levels.
+        *   Modify your OLLAMA HOST API  settings
 
-7.  **Run OpenAlpha_Evolve!**
+7.  **Run OllamaAlpha_Evolve!**
     The `main.py` file is configured with an example task (Dijkstra's algorithm). To run it:
     ```bash
     python -m main
@@ -141,7 +127,7 @@ OpenAlpha_Evolve employs a modular, agent-based architecture to orchestrate an e
 
 ## 💡 Defining Your Own Algorithmic Quests!
 
-Want to challenge OpenAlpha_Evolve with a new problem? It's easy:
+Want to challenge OllamaAlpha_Evolve with a new problem? It's easy:
 
 1.  **Open `main.py`**.
 2.  **Modify the `TaskDefinition` object**:
@@ -163,7 +149,7 @@ The quality of your `description` and the comprehensiveness of your `input_outpu
 
 ## 🔮 The Horizon: Future Evolution
 
-OpenAlpha_Evolve is a living project. Here are some directions we're excited to explore (and invite contributions for!):
+OllamaAlpha_Evolve is a living project. Here are some directions we're excited to explore (and invite contributions for!):
 
 *   **Advanced Evaluation Sandboxing**: Implementing more robust, secure sandboxing (e.g., using Docker or `nsjail`) for code execution to handle potentially unsafe code and complex dependencies.
 *   **Sophisticated Fitness Metrics**: Beyond correctness and basic runtime, incorporating checks for code complexity (e.g., cyclomatic complexity), style (linting), resource usage (memory), and custom domain-specific metrics.
@@ -171,28 +157,13 @@ OpenAlpha_Evolve is a living project. Here are some directions we're excited to 
 *   **Enhanced Monitoring & Visualization**: Developing tools (via `MonitoringAgent`) to visualize the evolutionary process, track fitness landscapes, and understand agent behavior (e.g., using a simple web dashboard or plots).
 *   **Broader LLM Support**: Adding easy integrations for other powerful LLMs (e.g., OpenAI models, Anthropic Claude).
 *   **Self-Correction & Reflection**: Enabling the agent to analyze its own failures more deeply (e.g., analyze error messages, identify patterns in failed tests) and refine its problem-solving approach.
-*   **Diverse Task Domains**: Applying OpenAlpha_Evolve to a wider range of problems in science, engineering, data analysis, and creative coding.
+*   **Diverse Task Domains**: Applying OllamaAlpha_Evolve to a wider range of problems in science, engineering, data analysis, and creative coding.
 *   **Community-Driven Task Library**: Building a collection of interesting and challenging tasks contributed by the community.
 *   **Improved Diff Application**: Making the diff application more robust or exploring alternative ways for the LLM to suggest modifications.
 *   **Crossover Implementation**: Adding a genetic crossover mechanism as an alternative or supplement to LLM-driven mutation.
 
 ---
-
-## 🤝 Join the Evolution: Contributing
-
-This is an open invitation to collaborate! Whether you're an AI researcher, a Python developer, or simply an enthusiast, your contributions are welcome.
-
-*   **Report Bugs**: Find an issue? Please create an issue on GitHub!
-*   **Suggest Features**: Have an idea to make OpenAlpha_Evolve better? Open an issue to discuss it!
-*   **Submit Pull Requests**:
-    *   Fork the repository.
-    *   Create a new branch for your feature or bugfix (`git checkout -b feature/your-feature-name`).
-    *   Write clean, well-documented code.
-    *   Add tests for your changes if applicable.
-    *   Ensure your changes don't break existing functionality.
-    *   Submit a pull request with a clear description of your changes!
-
-Let's evolve this agent together!
+## ALL MAIN INFO IS THE SAME AS THE ORIGINAL PROJECT OPENALPHA_EVOLVE , it just gives you more freedom on OLLAMA, than beeing forced on gemini.
 
 ---
 
@@ -204,7 +175,7 @@ This project is licensed under the **MIT License**. See the `LICENSE.md` file fo
 
 ## 🙏 Homage
 
-OpenAlpha_Evolve is proudly inspired by the pioneering work of the Google DeepMind team on AlphaEvolve and other related research in LLM-driven code generation and automated discovery. This project aims to make the core concepts more accessible for broader experimentation and learning. We stand on the shoulders of giants.
+OllamaAlpha_Evolve is proudly inspired by the pioneering work of the Google DeepMind team on AlphaEvolve and other related research in LLM-driven code generation and automated discovery. This project aims to make the core concepts more accessible for broader experimentation and learning. We stand on the shoulders of giants.
 
 ---
 

@@ -118,5 +118,5 @@ ehthumbs.db
 Thumbs.db
 
 # Graphviz DOT source files
-openalpha_evolve_workflow
+OllamaAlpha_Evolve_workflow
 *.dot 

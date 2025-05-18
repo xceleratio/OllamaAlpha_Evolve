@@ -5,29 +5,29 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Attempt to load the API key
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# Attempt to load the API key - but you probably dont need that on a local OLLAMA instance, unless you´r a security freak
+API_KEY = os.getenv("API_KEY")
+
+# Define your OLLAMA HOST:11434
+OLLAMA_HOST = "https://api.xceleratio.ai" # Usually your ollama runs on http://localhost:11434
 
 # Fallback for development if .env is not set or key is not found,
 # but ensure this is handled securely in production.
-if not GEMINI_API_KEY:
+if not API_KEY:
     # --- IMPORTANT ---
     # Directly embedding keys is a security risk.
-    # This is a placeholder for local development ONLY.
-    # In a real deployment, use environment variables, secrets management, or other secure methods.
-    # For local testing without a .env file, you can temporarily set it like:
-    # GEMINI_API_KEY = "YOUR_ACTUAL_API_KEY_HERE"
     print("Warning: GEMINI_API_KEY not found in .env or environment. Using a NON-FUNCTIONAL placeholder. Please create a .env file with your valid API key.")
-    GEMINI_API_KEY = "YOUR_API_KEY_FROM_DOTENV_WAS_NOT_FOUND_PLEASE_SET_IT_UP" # Obvious placeholder
+    API_KEY = "YOUR_API_KEY_FROM_DOTENV_WAS_NOT_FOUND_PLEASE_SET_IT_UP" # Obvious placeholder in case you need an api key for ollama
 
 # LLM Model Configuration
-GEMINI_PRO_MODEL_NAME = "gemini-2.0-flash-lite" # Using a more capable model
-GEMINI_FLASH_MODEL_NAME = "gemini-2.0-flash-lite" # Default model for speed
-GEMINI_EVALUATION_MODEL = "gemini-2.0-flash-lite" # Model for evaluation tasks
+OLLAMA_MODEL_NAME = "granite3.3"
+PRO_MODEL_NAME = "granite3.3" # Using a more capable model
+FLASH_MODEL_NAME = "granite3.3" # Default model for speed
+EVALUATION_MODEL = "granite3.3" # Model for evaluation tasks
 
 # Evolutionary Parameters (examples)
-POPULATION_SIZE = 50  # Number of individuals in each generation
-GENERATIONS = 50       # Number of generations to run the evolution
+POPULATION_SIZE = 10  # Number of individuals in each generation
+GENERATIONS = 10       # Number of generations to run the evolution
 ELITISM_COUNT = 1     # Number of best individuals to carry over to the next generation
 MUTATION_RATE = 0.7   # Probability of mutating an individual
 CROSSOVER_RATE = 0.2  # Probability of crossing over two parents (if crossover is implemented)
@@ -40,7 +40,7 @@ DATABASE_TYPE = "in_memory" # or "sqlite", "postgresql" in the future
 DATABASE_PATH = "program_database.json" # Path for file-based DB
 
 # Logging Parameters
-LOG_LEVEL = "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+LOG_LEVEL = "WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 LOG_FILE = "alpha_evolve.log"
 
 # API Retry Parameters
@@ -68,9 +68,9 @@ def get_setting(key, default=None):
 # Example of how to get a model, perhaps with fallback logic (not strictly necessary with current direct assignments)
 def get_llm_model(model_type="pro"):
     if model_type == "pro":
-        return GEMINI_PRO_MODEL_NAME
+        return PRO_MODEL_NAME
     elif model_type == "flash":
-        return GEMINI_FLASH_MODEL_NAME
-    return GEMINI_FLASH_MODEL_NAME # Default fallback
+        return FLASH_MODEL_NAME
+    return FLASH_MODEL_NAME # Default fallback
 
 # Add other global settings here 

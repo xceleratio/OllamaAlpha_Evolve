@@ -20,7 +20,7 @@ class EvaluatorAgent(EvaluatorAgentInterface, BaseAgent):
     def __init__(self, task_definition: Optional[TaskDefinition] = None):
         super().__init__()
         self.task_definition = task_definition
-        self.evaluation_model_name = settings.GEMINI_EVALUATION_MODEL
+        self.evaluation_model_name = settings.EVALUATION_MODEL
         self.evaluation_timeout_seconds = settings.EVALUATION_TIMEOUT_SECONDS
         logger.info(f"EvaluatorAgent initialized with model: {self.evaluation_model_name}, timeout: {self.evaluation_timeout_seconds}s")
         if self.task_definition:
@@ -46,6 +46,7 @@ class EvaluatorAgent(EvaluatorAgentInterface, BaseAgent):
         results = {"test_outputs": [], "average_runtime_ms": 0.0}
         
         if not task_for_examples.input_output_examples:
+            print("No input/output examples provided to _execute_code_safely.")
             logger.warning("No input/output examples provided to _execute_code_safely.")
             return results, "No test cases to run."
 

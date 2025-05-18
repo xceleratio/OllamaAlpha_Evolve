@@ -1,8 +1,11 @@
 # Core Libraries
-google-generativeai  # For Gemini LLMs
+# google-generativeai  # with ollama no need for gemini any more
 # langchain
 # langchain-google-genai # Or similar for Gemini integration
 python-dotenv # For managing environment variables
+
+# calling your OLLAMA API // also supports https//api.whereveryouhostYourOllamaInstance.com 
+aiohttp
 
 # LLM Models & Frameworks
 # transformers
