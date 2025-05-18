@@ -9,7 +9,7 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
 # Define your OLLAMA HOST:11434
-OLLAMA_HOST = "https://api.xceleratio.ai" # Usually your ollama runs on http://localhost:11434
+OLLAMA_HOST = "https://localhost:11434" # Usually your ollama runs on http://localhost:11434
 
 # Fallback for development if .env is not set or key is not found,
 # but ensure this is handled securely in production.
