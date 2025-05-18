@@ -2,7 +2,7 @@
 from typing import Optional, Dict, Any
 import logging
 
-from alpha_evolve_pro.core.interfaces import PromptDesignerInterface, Program, TaskDefinition, BaseAgent
+from core.interfaces import PromptDesignerInterface, Program, TaskDefinition, BaseAgent
 
 logger = logging.getLogger(__name__)
 
@@ -14,126 +14,193 @@ class PromptDesignerAgent(PromptDesignerInterface, BaseAgent):
 
     def design_initial_prompt(self) -> str:
         logger.info(f"Designing initial prompt for task: {self.task_definition.id}")
+        # This prompt should request full code, not a diff.
         prompt = (
-            f"Task: {self.task_definition.description}\n\n"
-            f"Function Signature: Create a Python function named `{self.task_definition.function_name_to_evolve}` "
-            f"that accepts arguments as described or implied by the input examples. "
-            f"Input examples: {self.task_definition.input_output_examples}\n\n"
+            f"You are an expert Python programmer. Your task is to write a Python function based on the following specifications.\n\n"
+            f"Task Description: {self.task_definition.description}\n\n"
+            f"Function to Implement: `{self.task_definition.function_name_to_evolve}`\n\n"
+            f"Input/Output Examples:\n"
+            # Format examples for clarity
+            f"{self._format_input_output_examples()}\n\n"
             f"Evaluation Criteria: {self.task_definition.evaluation_criteria}\n\n"
-            f"Allowed standard library imports for your solution: {self.task_definition.allowed_imports}. Do not use other external libraries.\n\n"
-            f"Please provide only the complete Python code for the function `{self.task_definition.function_name_to_evolve}`. "
-            f"Do not include any surrounding text, explanations, or markdown code fences (like ```python). "
-            f"Ensure the function is self-contained or uses only the allowed imports."
+            f"Allowed Standard Library Imports: {self.task_definition.allowed_imports}. Do not use any other external libraries or packages.\n\n"
+            f"Your Response Format:\n"
+            f"Please provide *only* the complete Python code for the function `{self.task_definition.function_name_to_evolve}`. "
+            f"The code should be self-contained or rely only on the allowed imports. "
+            f"Do not include any surrounding text, explanations, comments outside the function, or markdown code fences (like ```python or ```)."
         )
         logger.debug(f"Designed initial prompt:\n--PROMPT START--\n{prompt}\n--PROMPT END--")
         return prompt
 
-    def design_mutation_prompt(self, program: Program, evaluation_feedback: dict | None = None) -> str:
-        logger.info(f"Designing mutation prompt for program: {program.program_id} (Generation: {program.generation})")
-        logger.debug(f"Parent program code:\n{program.code}")
-        if evaluation_feedback:
-            logger.debug(f"Evaluation feedback received for parent:\n{evaluation_feedback}")
+    def _format_input_output_examples(self) -> str:
+        if not self.task_definition.input_output_examples:
+            return "No input/output examples provided."
+        formatted_examples = []
+        for i, example in enumerate(self.task_definition.input_output_examples):
+            input_str = str(example.get('input'))
+            output_str = str(example.get('output'))
+            formatted_examples.append(f"Example {i+1}:\n  Input: {input_str}\n  Expected Output: {output_str}")
+        return "\n".join(formatted_examples)
 
-        feedback_prompt_segment = ""
-        if evaluation_feedback:
-            correctness = evaluation_feedback.get("correctness_score", 0) * 100
-            runtime = evaluation_feedback.get("runtime_ms", "N/A")
-            errors = evaluation_feedback.get("errors", None)
-            # stdout = evaluation_feedback.get("stdout", None) # Not including stdout in prompt for brevity
-            stderr = evaluation_feedback.get("stderr", None)
+    def _format_evaluation_feedback(self, program: Program, evaluation_feedback: Optional[Dict[str, Any]]) -> str:
+        if not evaluation_feedback:
+            return "No detailed evaluation feedback is available for the previous version of this code. Attempt a general improvement or refinement."
 
-            feedback_prompt_segment = f"The previous version of this code had a correctness score of {correctness:.2f}% and a runtime of {runtime} ms.\n"
-            if errors:
-                feedback_prompt_segment += f"It produced the following errors during evaluation: {errors}\n"
-            if stderr:
-                 feedback_prompt_segment += f"Standard Error output during execution: {stderr}\n"
-            if correctness < 100 and not errors and not stderr:
-                 feedback_prompt_segment += "It did not achieve 100% correctness but did not produce explicit errors. Review logic for test case failures.\n"
-        else:
-            feedback_prompt_segment = "The previous version of this code was evaluated, but detailed feedback is not available. Attempt a general improvement.\n"
+        correctness = evaluation_feedback.get("correctness_score", None)
+        runtime = evaluation_feedback.get("runtime_ms", None)
+        errors = evaluation_feedback.get("errors", []) # Ensure errors is a list
+        # stdout = evaluation_feedback.get("stdout", None) # Potentially useful but can be long
+        stderr = evaluation_feedback.get("stderr", None)
+
+        feedback_parts = []
+        if correctness is not None:
+            feedback_parts.append(f"- Correctness Score: {correctness*100:.2f}%")
+        if runtime is not None:
+            feedback_parts.append(f"- Runtime: {runtime:.2f} ms")
+        
+        if errors:
+            error_messages = "\n".join([f"  - {e}" for e in errors])
+            feedback_parts.append(f"- Errors Encountered During Evaluation:\n{error_messages}")
+        elif stderr:
+            feedback_parts.append(f"- Standard Error Output During Execution:\n{stderr}")
+        elif correctness is not None and correctness < 1.0:
+            feedback_parts.append("- The code did not achieve 100% correctness but produced no explicit errors or stderr. Review logic for test case failures.")
+        elif correctness == 1.0:
+            feedback_parts.append("- The code achieved 100% correctness. Consider optimizing for efficiency or exploring alternative correct solutions.")
+        
+        if not feedback_parts:
+             return "The previous version was evaluated, but no specific feedback details were captured. Try a general improvement."
+
+        return "Summary of the previous version's evaluation:\n" + "\n".join(feedback_parts)
+
+    def design_mutation_prompt(self, program: Program, evaluation_feedback: Optional[Dict[str, Any]] = None) -> str:
+        logger.info(f"Designing mutation prompt for program: {program.id} (Generation: {program.generation})")
+        logger.debug(f"Parent program code (to be mutated):\n{program.code}")
+        
+        feedback_summary = self._format_evaluation_feedback(program, evaluation_feedback)
+        logger.debug(f"Formatted evaluation feedback for prompt:\n{feedback_summary}")
+
+        diff_instructions = (
+            "Your Response Format:\n"
+            "Propose improvements to the 'Current Code' below by providing your changes as a sequence of diff blocks. "
+            "Each diff block must follow this exact format:\n"
+            "<<<<<<< SEARCH\n"
+            "# Exact original code lines to be found and replaced\n"
+            "=======\n"
+            "# New code lines to replace the original\n"
+            ">>>>>>> REPLACE\n\n"
+            "- The SEARCH block must be an *exact* segment from the 'Current Code'. Do not paraphrase or shorten it."
+            "- If you are adding new code where nothing existed, the SEARCH block can be a comment indicating the location, or an adjacent existing line."
+            "- If you are deleting code, the REPLACE block should be empty."
+            "- Provide all suggested changes as one or more such diff blocks. Do not include any other text, explanations, or markdown outside these blocks."
+        )
 
         prompt = (
-            f"Task: {self.task_definition.description}\n\n"
-            f"Function Signature: The Python function to improve is `{self.task_definition.function_name_to_evolve}`.\n"
-            f"Allowed standard library imports: {self.task_definition.allowed_imports}. Do not use other external libraries.\n\n"
-            f"Current Code:\n```python\n{program.code}\n```\n\n"
-            f"Evaluation Feedback on Current Code:\n{feedback_prompt_segment}\n"
-            f"Instruction: Based on the task, the current code, and the evaluation feedback, provide an improved version of the function `{self.task_definition.function_name_to_evolve}`. "
-            f"Focus on improving correctness and then efficiency. "
-            f"If the code was incorrect, prioritize fixing the bugs. If it was correct but slow, optimize it. "
-            f"If it had errors, resolve them. If no specific errors, try a logical mutation or refinement.\n\n"
-            f"Please provide only the complete Python code for the improved function `{self.task_definition.function_name_to_evolve}`. "
-            f"Do not include any surrounding text, explanations, or markdown code fences (like ```python). "
-            f"Ensure the function is self-contained or uses only the allowed imports."
+            f"You are an expert Python programmer. Your task is to improve an existing Python function based on its previous performance and the overall goal.\n\n"
+            f"Overall Task Description: {self.task_definition.description}\n\n"
+            f"Function to Improve: `{self.task_definition.function_name_to_evolve}`\n\n"
+            f"Allowed Standard Library Imports: {self.task_definition.allowed_imports}. Do not use other external libraries or packages.\n\n"
+            f"Current Code (Version from Generation {program.generation}):\n"
+            f"```python\n{program.code}\n```\n\n"
+            f"Evaluation Feedback on the 'Current Code':\n{feedback_summary}\n\n"
+            f"Your Improvement Goal:\n"
+            f"Based on the task, the 'Current Code', and its 'Evaluation Feedback', your goal is to propose modifications to improve the function `{self.task_definition.function_name_to_evolve}`. "
+            f"Prioritize fixing any errors or correctness issues. If correct, focus on improving efficiency or exploring alternative robust logic. "
+            f"Consider the original evaluation criteria: {self.task_definition.evaluation_criteria}\n\n"
+            f"{diff_instructions}"
         )
-        logger.debug(f"Designed mutation prompt:\n--PROMPT START--\n{prompt}\n--PROMPT END--")
+        logger.debug(f"Designed mutation prompt (requesting diff):\n--PROMPT START--\n{prompt}\n--PROMPT END--")
         return prompt
 
-    def design_bug_fix_prompt(self, program: Program, error_message: str, execution_output: str | None = None) -> str:
-        logger.info(f"Designing bug-fix prompt for program: {program.program_id} (Generation: {program.generation})")
+    def design_bug_fix_prompt(self, program: Program, error_message: str, execution_output: Optional[str] = None) -> str:
+        logger.info(f"Designing bug-fix prompt for program: {program.id} (Generation: {program.generation})")
         logger.debug(f"Buggy program code:\n{program.code}")
-        logger.debug(f"Error message: {error_message}")
+        logger.debug(f"Primary error message: {error_message}")
         if execution_output:
-            logger.debug(f"Execution output (stdout/stderr): {execution_output}")
+            logger.debug(f"Additional execution output (stdout/stderr): {execution_output}")
 
-        output_segment = f"Execution Output (stdout/stderr):\n{execution_output}\n" if execution_output else "No detailed execution output was captured beyond the error.\n"
+        output_segment = f"Execution Output (stdout/stderr that might be relevant):\n{execution_output}\n" if execution_output else "No detailed execution output was captured beyond the error message itself.\n"
+        
+        diff_instructions = (
+            "Your Response Format:\n"
+            "Propose fixes to the 'Buggy Code' below by providing your changes as a sequence of diff blocks. "
+            "Each diff block must follow this exact format:\n"
+            "<<<<<<< SEARCH\n"
+            "# Exact original code lines to be found and replaced\n"
+            "=======\n"
+            "# New code lines to replace the original\n"
+            ">>>>>>> REPLACE\n\n"
+            "- The SEARCH block must be an *exact* segment from the 'Buggy Code'."
+            "- Provide all suggested changes as one or more such diff blocks. Do not include any other text, explanations, or markdown outside these blocks."
+        )
 
         prompt = (
-            f"Task: {self.task_definition.description}\n\n"
-            f"Function Signature: The Python function to fix is `{self.task_definition.function_name_to_evolve}`.\n"
-            f"Allowed standard library imports: {self.task_definition.allowed_imports}. Do not use other external libraries.\n\n"
-            f"Buggy Code:\n```python\n{program.code}\n```\n\n"
+            f"You are an expert Python programmer. Your task is to fix a bug in an existing Python function.\n\n"
+            f"Overall Task Description: {self.task_definition.description}\n\n"
+            f"Function to Fix: `{self.task_definition.function_name_to_evolve}`\n\n"
+            f"Allowed Standard Library Imports: {self.task_definition.allowed_imports}. Do not use other external libraries or packages.\n\n"
+            f"Buggy Code (Version from Generation {program.generation}):\n"
+            f"```python\n{program.code}\n```\n\n"
             f"Error Encountered: {error_message}\n"
             f"{output_segment}\n"
-            f"Instruction: The above code produced an error. Please analyze the code, the error, and any execution output to identify and fix the bug. "
-            f"Provide a corrected version of the function `{self.task_definition.function_name_to_evolve}`.\n\n"
-            f"Please provide only the complete Python code for the fixed function `{self.task_definition.function_name_to_evolve}`. "
-            f"Do not include any surrounding text, explanations, or markdown code fences (like ```python). "
-            f"Ensure the function is self-contained or uses only the allowed imports."
+            f"Your Goal:\n"
+            f"Analyze the 'Buggy Code', the 'Error Encountered', and any 'Execution Output' to identify and fix the bug(s). "
+            f"The corrected function must adhere to the overall task description and allowed imports.\n\n"
+            f"{diff_instructions}"
         )
-        logger.debug(f"Designed bug-fix prompt:\n--PROMPT START--\n{prompt}\n--PROMPT END--")
+        logger.debug(f"Designed bug-fix prompt (requesting diff):\n--PROMPT START--\n{prompt}\n--PROMPT END--")
         return prompt
 
     async def execute(self, *args, **kwargs) -> Any:
-        # This agent primarily has specific design methods, not a generic execute
-        # Or, you could define execute to choose a prompt type based on inputs
         raise NotImplementedError("PromptDesignerAgent.execute() is not the primary way to use this agent. Call specific design methods.")
 
 # Example Usage:
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    # Define sample_task_def first
     sample_task_def = TaskDefinition(
         id="task_001_designer_test",
         description="Create a Python function `sum_list(numbers)` that returns the sum of a list of integers. Handle empty lists by returning 0.",
         function_name_to_evolve="sum_list",
         input_output_examples=[
-            {"input": [1, 2, 3], "output": 6}, # Using actual types rather than strings for demo
+            {"input": [1, 2, 3], "output": 6},
             {"input": [], "output": 0}
         ],
-        # evaluation_criteria can be added if needed for the test
-        # initial_code_prompt can be added if needed for the test
-        # allowed_imports can be added if needed for the test
+        evaluation_criteria="Ensure correctness for all cases, including empty lists.",
+        allowed_imports=["math"]
     )
-    # Pass sample_task_def to the constructor
     designer = PromptDesignerAgent(task_definition=sample_task_def)
 
-    initial_prompt = designer.design_initial_prompt()
     print("--- Initial Prompt ---")
+    initial_prompt = designer.design_initial_prompt()
     print(initial_prompt)
 
-    sample_program = Program(
-        id="prog_001",
-        code="def sum_list(numbers):\n  # Buggy implementation\n  return sum(numbers) if numbers else 'Error'",
-        fitness_scores={"correctness": 0.0, "runtime_ms": 10.0},
+    sample_program_mutation = Program(
+        id="prog_mut_001",
+        code="def sum_list(numbers):\n  # Slightly off logic\n  s = 0\n  for n in numbers:\n    s += n\n  return s if numbers else 1", # Bug for empty list
+        fitness_scores={"correctness_score": 0.5, "runtime_ms": 5.0},
         generation=1,
-        errors=["TypeError: unsupported operand type(s) for +: 'int' and 'str' on empty list with 'Error' return"]
+        errors=["Test case failed: Input [], Expected 0, Got 1"],
+        status="evaluated"
     )
-    mutation_prompt = designer.design_mutation_prompt(sample_program, evaluation_feedback={"notes": "Failed on empty list case."})
-    print("\n--- Mutation Prompt ---")
+    mutation_feedback = {
+        "correctness_score": sample_program_mutation.fitness_scores["correctness_score"],
+        "runtime_ms": sample_program_mutation.fitness_scores["runtime_ms"],
+        "errors": sample_program_mutation.errors,
+        "stderr": None
+    }
+    print("\n--- Mutation Prompt (Requesting Diff) ---")
+    mutation_prompt = designer.design_mutation_prompt(sample_program_mutation, evaluation_feedback=mutation_feedback)
     print(mutation_prompt)
 
-    bug_fix_prompt = designer.design_bug_fix_prompt(sample_program, error_message="TypeError", execution_output="Fails when list is empty")
-    print("\n--- Bug-Fix Prompt ---")
+    sample_program_buggy = Program(
+        id="prog_bug_002",
+        code="def sum_list(numbers):\n  # Buggy implementation causing TypeError\n  if not numbers:\n    return 0\n  return sum(numbers) + \"oops\"",
+        fitness_scores={"correctness_score": 0.0, "runtime_ms": 2.0},
+        generation=2,
+        errors=["TypeError: unsupported operand type(s) for +: 'int' and 'str'"],
+        status="evaluated"
+    )
+    print("\n--- Bug-Fix Prompt (Requesting Diff) ---")
+    bug_fix_prompt = designer.design_bug_fix_prompt(sample_program_buggy, error_message=sample_program_buggy.errors[0], execution_output="TypeError occurred during summation.")
     print(bug_fix_prompt) 

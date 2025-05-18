@@ -2,7 +2,7 @@
 import logging
 from typing import Dict, Any, Optional
 
-from alpha_evolve_pro.core.interfaces import MonitoringAgentInterface, BaseAgent
+from core.interfaces import MonitoringAgentInterface, BaseAgent
 
 logger = logging.getLogger(__name__)
 

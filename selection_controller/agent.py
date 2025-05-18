@@ -3,8 +3,8 @@ import random
 import logging
 from typing import List, Dict, Any, Optional
 
-from alpha_evolve_pro.core.interfaces import SelectionControllerInterface, Program, BaseAgent
-from alpha_evolve_pro.config import settings
+from core.interfaces import SelectionControllerInterface, Program, BaseAgent
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -27,17 +27,17 @@ class SelectionControllerAgent(SelectionControllerInterface, BaseAgent):
             return list(population) # Return a copy
 
         # Sort population by fitness (higher is better: correctness primary, runtime secondary)
-        # Assuming fitness_scores dictionary has 'correctness_score' and 'runtime_ms'
+        # Assuming fitness_scores dictionary has 'correctness' and 'runtime_ms'
         # Lower runtime_ms is better, so we use -runtime_ms for sorting if correctness is equal
         sorted_population = sorted(
             population,
             key=lambda p: (
-                p.fitness.get("correctness_score", 0.0),
-                -p.fitness.get("runtime_ms", float('inf')) # Negative for ascending sort on runtime
+                p.fitness_scores.get("correctness", 0.0),
+                -p.fitness_scores.get("runtime_ms", float('inf')) # Negative for ascending sort on runtime
             ),
             reverse=True  # Higher correctness is better
         )
-        logger.debug(f"Population sorted for parent selection. Top 3 (if available): {[p.program_id for p in sorted_population[:3]]}")
+        logger.debug(f"Population sorted for parent selection. Top 3 (if available): {[p.id for p in sorted_population[:3]]}")
 
         parents = []
 
@@ -46,13 +46,13 @@ class SelectionControllerAgent(SelectionControllerInterface, BaseAgent):
         seen_ids_for_elitism = set()
         for program in sorted_population:
             if len(elite_candidates) < self.elitism_count:
-                if program.program_id not in seen_ids_for_elitism: # Ensure uniqueness if programs can have same fitness
+                if program.id not in seen_ids_for_elitism: # Ensure uniqueness if programs can have same fitness
                     elite_candidates.append(program)
-                    seen_ids_for_elitism.add(program.program_id)
+                    seen_ids_for_elitism.add(program.id)
             else:
                 break
         parents.extend(elite_candidates)
-        logger.info(f"Selected {len(elite_candidates)} elite parents: {[p.program_id for p in elite_candidates]}")
+        logger.info(f"Selected {len(elite_candidates)} elite parents: {[p.id for p in elite_candidates]}")
 
         # 2. Fitness-Proportionate Selection (Roulette Wheel) for remaining slots
         # Ensure we don't try to select more parents than available or needed
@@ -62,14 +62,14 @@ class SelectionControllerAgent(SelectionControllerInterface, BaseAgent):
             return parents
 
         # Filter out already selected elites from candidates for roulette
-        roulette_candidates = [p for p in sorted_population if p.program_id not in seen_ids_for_elitism]
+        roulette_candidates = [p for p in sorted_population if p.id not in seen_ids_for_elitism]
         if not roulette_candidates:
             logger.warning("No candidates left for roulette selection after elitism. Returning current parents.")
             return parents
 
         # Calculate total fitness for roulette wheel (using correctness score)
         # Add a small constant to avoid zero fitness issues if all have 0 correctness
-        total_fitness = sum(p.fitness.get("correctness_score", 0.0) + 0.0001 for p in roulette_candidates)
+        total_fitness = sum(p.fitness_scores.get("correctness", 0.0) + 0.0001 for p in roulette_candidates)
         logger.debug(f"Total fitness for roulette wheel selection (among {len(roulette_candidates)} candidates): {total_fitness:.4f}")
 
         if total_fitness <= 0.0001 * len(roulette_candidates): # All effectively zero
@@ -78,7 +78,7 @@ class SelectionControllerAgent(SelectionControllerInterface, BaseAgent):
             num_to_select_randomly = min(remaining_slots, len(roulette_candidates))
             random_parents = random.sample(roulette_candidates, num_to_select_randomly)
             parents.extend(random_parents)
-            logger.info(f"Selected {len(random_parents)} parents randomly due to zero total fitness: {[p.program_id for p in random_parents]}")
+            logger.info(f"Selected {len(random_parents)} parents randomly due to zero total fitness: {[p.id for p in random_parents]}")
         else:
             for _ in range(remaining_slots):
                 if not roulette_candidates: break # Should not happen if logic is correct
@@ -86,7 +86,7 @@ class SelectionControllerAgent(SelectionControllerInterface, BaseAgent):
                 current_sum = 0
                 chosen_parent = None
                 for program in roulette_candidates:
-                    current_sum += (program.fitness.get("correctness_score", 0.0) + 0.0001)
+                    current_sum += (program.fitness_scores.get("correctness", 0.0) + 0.0001)
                     if current_sum >= pick:
                         chosen_parent = program
                         break
@@ -94,19 +94,19 @@ class SelectionControllerAgent(SelectionControllerInterface, BaseAgent):
                     parents.append(chosen_parent)
                     # Potentially remove chosen_parent from roulette_candidates if we want selection without replacement here
                     # For now, allowing replacement in roulette part, as elitism ensures top ones are already picked uniquely.
-                    logger.debug(f"Selected parent via roulette: {chosen_parent.program_id} (Fitness: {chosen_parent.fitness.get('correctness_score')})")
+                    logger.debug(f"Selected parent via roulette: {chosen_parent.id} (Fitness: {chosen_parent.fitness_scores.get('correctness')})")
                 else:
                     # Fallback if something went wrong, or if remaining_slots > len(unique roulette_candidates)
                     # This case should ideally be rare with proper checks
                     if roulette_candidates: # Should always be true here
                         fallback_parent = random.choice(roulette_candidates)
                         parents.append(fallback_parent)
-                        logger.warning(f"Roulette selection resulted in no choice (edge case), picked randomly: {fallback_parent.program_id}")
+                        logger.warning(f"Roulette selection resulted in no choice (edge case), picked randomly: {fallback_parent.id}")
                     else:
                         logger.warning("Roulette selection ran out of candidates (edge case).")
                         break 
 
-        logger.info(f"Total parents selected: {len(parents)}. IDs: {[p.program_id for p in parents]}")
+        logger.info(f"Total parents selected: {len(parents)}. IDs: {[p.id for p in parents]}")
         return parents
 
     def select_survivors(self, current_population: List[Program], offspring_population: List[Program], population_size: int) -> List[Program]:
@@ -122,13 +122,13 @@ class SelectionControllerAgent(SelectionControllerInterface, BaseAgent):
         sorted_combined = sorted(
             combined_population,
             key=lambda p: (
-                p.fitness.get("correctness_score", 0.0),
-                -p.fitness.get("runtime_ms", float('inf')),
+                p.fitness_scores.get("correctness", 0.0),
+                -p.fitness_scores.get("runtime_ms", float('inf')),
                 -p.generation # Favor newer generations in case of exact fitness tie
             ),
             reverse=True
         )
-        logger.debug(f"Combined population sorted for survivor selection. Top 3 (if available): {[p.program_id for p in sorted_combined[:3]]}")
+        logger.debug(f"Combined population sorted for survivor selection. Top 3 (if available): {[p.id for p in sorted_combined[:3]]}")
 
         # Select unique individuals up to population_size
         survivors = []
@@ -136,14 +136,14 @@ class SelectionControllerAgent(SelectionControllerInterface, BaseAgent):
         for program in sorted_combined:
             if len(survivors) < population_size:
                 # Could add a check for program.code uniqueness if desired, but ID should be unique by Program creation.
-                # Here, we assume program_id is the unique identifier for a program version.
-                if program.program_id not in seen_program_ids:
+                # Here, we assume id is the unique identifier for a program version.
+                if program.id not in seen_program_ids:
                     survivors.append(program)
-                    seen_program_ids.add(program.program_id)
+                    seen_program_ids.add(program.id)
             else:
                 break
         
-        logger.info(f"Selected {len(survivors)} survivors. IDs: {[p.program_id for p in survivors]}")
+        logger.info(f"Selected {len(survivors)} survivors. IDs: {[p.id for p in survivors]}")
         return survivors
 
     async def execute(self, action: str, **kwargs) -> Any:

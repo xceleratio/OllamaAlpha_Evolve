@@ -54,7 +54,7 @@ class PromptDesignerInterface(BaseAgent):
 
 class CodeGeneratorInterface(BaseAgent):
     @abstractmethod
-    async def generate_code(self, prompt: str, model_name: Optional[str] = None, temperature: float = 0.7) -> str:
+    async def generate_code(self, prompt: str, model_name: Optional[str] = None, temperature: Optional[float] = 0.7, output_format: str = "code") -> str:
         pass
 
 class EvaluatorAgentInterface(BaseAgent):

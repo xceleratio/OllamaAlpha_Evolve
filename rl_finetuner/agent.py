@@ -2,7 +2,7 @@
 import logging
 from typing import List, Dict, Any, Optional
 
-from alpha_evolve_pro.core.interfaces import RLFineTunerInterface, BaseAgent
+from core.interfaces import RLFineTunerInterface, BaseAgent
 
 logger = logging.getLogger(__name__)
 

@@ -4,19 +4,19 @@ import asyncio
 import uuid
 from typing import List, Dict, Any, Optional
 
-from alpha_evolve_pro.core.interfaces import (
+from core.interfaces import (
     TaskManagerInterface, TaskDefinition, Program, BaseAgent,
     PromptDesignerInterface, CodeGeneratorInterface, EvaluatorAgentInterface,
     DatabaseAgentInterface, SelectionControllerInterface
 )
-from alpha_evolve_pro.config import settings
+from config import settings
 
 # Import concrete agent implementations
-from alpha_evolve_pro.prompt_designer.agent import PromptDesignerAgent
-from alpha_evolve_pro.code_generator.agent import CodeGeneratorAgent
-from alpha_evolve_pro.evaluator_agent.agent import EvaluatorAgent
-from alpha_evolve_pro.database_agent.agent import InMemoryDatabaseAgent # Using InMemory for now
-from alpha_evolve_pro.selection_controller.agent import SelectionControllerAgent
+from prompt_designer.agent import PromptDesignerAgent
+from code_generator.agent import CodeGeneratorAgent
+from evaluator_agent.agent import EvaluatorAgent
+from database_agent.agent import InMemoryDatabaseAgent # Using InMemory for now
+from selection_controller.agent import SelectionControllerAgent
 
 logger = logging.getLogger(__name__)
 
@@ -148,32 +148,78 @@ class TaskManagerAgent(TaskManagerInterface):
     
     async def generate_offspring(self, parent: Program, generation_num: int, child_id:str) -> Optional[Program]:
         logger.debug(f"Generating offspring from parent {parent.id} for generation {generation_num}")
-        # Try to fix bugs if parent has errors and high failure rate (e.g. correctness 0)
-        if parent.errors and parent.fitness_scores.get("correctness", 1.0) == 0.0:
-            # Simplified: take the first error
-            error_info = {"message": parent.errors[0], "details": "From previous evaluation"}
-            mutation_prompt = self.prompt_designer.design_bug_fix_prompt(program=parent, error_message=error_info["message"], execution_output=error_info["details"])
-            logger.info(f"Attempting bug fix for parent {parent.id}")
+        
+        prompt_type = "mutation"
+        # Try to fix bugs if parent has errors and significantly low correctness
+        # Example: correctness is 0 means it failed all tests, strong indicator of a bug.
+        if parent.errors and parent.fitness_scores.get("correctness", 1.0) < 0.1: # Correctness < 10%
+            # Simplified: take the first error for the prompt
+            primary_error = parent.errors[0]
+            # Try to get more execution details if they were stored as a string in errors list
+            execution_details = None
+            if len(parent.errors) > 1 and isinstance(parent.errors[1], str) and ("stdout" in parent.errors[1].lower() or "stderr" in parent.errors[1].lower()):
+                execution_details = parent.errors[1]
+            
+            mutation_prompt = self.prompt_designer.design_bug_fix_prompt(
+                program=parent, 
+                error_message=primary_error, 
+                execution_output=execution_details
+            )
+            logger.info(f"Attempting bug fix for parent {parent.id} using diff. Error: {primary_error}")
+            prompt_type = "bug_fix"
         else:
             # Pass recent eval feedback if available
-            feedback = {"errors": parent.errors, "fitness": parent.fitness_scores}
-            mutation_prompt = self.prompt_designer.design_mutation_prompt(program=parent, evaluation_feedback=feedback)
-            logger.info(f"Attempting mutation for parent {parent.id}")
-        
-        # Use a slightly higher temperature for mutation to encourage exploration but not too wild
-        generated_code = await self.code_generator.generate_code(mutation_prompt, temperature=0.75)
+            # Ensure fitness_scores is part of the feedback if it exists
+            feedback = {
+                "errors": parent.errors,
+                "correctness_score": parent.fitness_scores.get("correctness"),
+                "runtime_ms": parent.fitness_scores.get("runtime_ms")
+                # Add other relevant fields from fitness_scores if needed
+            }
+            # Remove None values from feedback to keep prompt cleaner
+            feedback = {k: v for k, v in feedback.items() if v is not None}
 
-        if "# Error:" in generated_code or not generated_code.strip():
-            logger.warning(f"Failed to generate valid code for offspring of {parent.id}. LLM Output: {generated_code}")
+            mutation_prompt = self.prompt_designer.design_mutation_prompt(program=parent, evaluation_feedback=feedback)
+            logger.info(f"Attempting mutation for parent {parent.id} using diff.")
+        
+        # Use a slightly higher temperature for mutation/bug-fix to encourage exploration but not too wild
+        # The CodeGeneratorAgent.execute method will handle applying the diff.
+        generated_code = await self.code_generator.execute(
+            prompt=mutation_prompt, 
+            temperature=0.75, 
+            output_format="diff", 
+            parent_code_for_diff=parent.code
+        )
+
+        if not generated_code.strip():
+            logger.warning(f"Offspring generation for parent {parent.id} ({prompt_type}) resulted in empty code/diff. Skipping.")
+            return None
+        
+        # Check if the generated code is substantially different from parent, or if it's still the raw diff marker (error case)
+        # This is a basic check. A more sophisticated one might be needed.
+        if generated_code == parent.code:
+            logger.warning(f"Offspring generation for parent {parent.id} ({prompt_type}) using diff resulted in no change to the code. Skipping.")
+            return None
+        
+        # If the diff application failed inside CodeGeneratorAgent.execute, it might return the raw diff. 
+        # We try to avoid saving raw diffs as programs. A simple check:
+        if "<<<<<<< SEARCH" in generated_code and "=======" in generated_code and ">>>>>>> REPLACE" in generated_code:
+            logger.warning(f"Offspring generation for parent {parent.id} ({prompt_type}) seems to have returned raw diff. LLM or diff application may have failed. Skipping. Content:\n{generated_code[:500]}") # Log first 500 chars
+            return None
+        
+        # A very generic error check, in case LLM includes it despite instructions.
+        if "# Error:" in generated_code[:100]: # Check beginning of the code for common error markers
+            logger.warning(f"Failed to generate valid code for offspring of {parent.id} ({prompt_type}). LLM Output indicates error: {generated_code[:200]}")
             return None
 
         offspring = Program(
             id=child_id,
-            code=generated_code,
+            code=generated_code, # This is now the modified code after diff application
             generation=generation_num,
             parent_id=parent.id,
             status="unevaluated"
         )
+        logger.info(f"Successfully generated offspring {offspring.id} from parent {parent.id} ({prompt_type}).")
         return offspring
 
     async def execute(self) -> Any:

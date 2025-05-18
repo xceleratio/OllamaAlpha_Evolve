@@ -6,9 +6,9 @@ import asyncio
 import logging
 import sys # Required for sys.maxsize in task definition
 
-from alpha_evolve_pro.task_manager.agent import TaskManagerAgent
-from alpha_evolve_pro.core.interfaces import TaskDefinition
-# from alpha_evolve_pro.config import settings # Not strictly needed here if TaskManagerAgent handles it
+from task_manager.agent import TaskManagerAgent
+from core.interfaces import TaskDefinition
+# from config import settings # Not strictly needed here if TaskManagerAgent handles it
 
 # Configure logging
 logging.basicConfig(
@@ -94,11 +94,12 @@ async def run_alpha_evolve_pro():
 
     # 3. Run the evolutionary process
     try:
-        best_program = await task_manager.execute()
-        if best_program:
+        best_programs = await task_manager.execute() # TaskManagerAgent.execute returns a list
+        if best_programs and isinstance(best_programs, list) and len(best_programs) > 0:
+            best_program = best_programs[0] # Assuming the first one is the best as per current logic
             logger.info(f"AlphaEvolve Pro finished. Overall best program found for task '{dijkstra_task.id}':")
-            logger.info(f"Program ID: {best_program.program_id}")
-            logger.info(f"Fitness: Correctness={best_program.fitness.get('correctness_score', 'N/A')*100:.2f}%, Runtime={best_program.fitness.get('runtime_ms', 'N/A')}ms")
+            logger.info(f"Program ID: {best_program.id}") # Corrected: program_id to id
+            logger.info(f"Fitness: Correctness={best_program.fitness_scores.get('correctness', -1)*100:.2f}%, Runtime={best_program.fitness_scores.get('runtime_ms', float('inf'))}ms") # Corrected: fitness to fitness_scores, and provide defaults for get
             logger.info(f"Generation: {best_program.generation}")
             logger.info("Code:\n" + best_program.code)
         else:

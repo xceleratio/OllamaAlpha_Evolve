@@ -17,17 +17,18 @@ if not GEMINI_API_KEY:
     # In a real deployment, use environment variables, secrets management, or other secure methods.
     # For local testing without a .env file, you can temporarily set it like:
     # GEMINI_API_KEY = "YOUR_ACTUAL_API_KEY_HERE"
-    # print("Warning: GEMINI_API_KEY not found in .env. Using hardcoded fallback (unsafe for production).")
-    GEMINI_API_KEY = "AIzaSyBomg7YkzybPaydH6fBNA7TUPDTXokbMCk" # Replace with your actual key if testing locally without .env
+    print("Warning: GEMINI_API_KEY not found in .env or environment. Using a NON-FUNCTIONAL placeholder. Please create a .env file with your valid API key.")
+    GEMINI_API_KEY = "YOUR_API_KEY_FROM_DOTENV_WAS_NOT_FOUND_PLEASE_SET_IT_UP" # Obvious placeholder
 
 # LLM Model Configuration
-GEMINI_PRO_MODEL_NAME = "gemini-2.5-flash-preview-04-17" # Using a more capable model
-GEMINI_FLASH_MODEL_NAME = "gemini-2.5-flash-preview-04-17" # Using a more capable model
+GEMINI_PRO_MODEL_NAME = "gemini-2.0-flash-lite" # Using a more capable model
+GEMINI_FLASH_MODEL_NAME = "gemini-2.0-flash-lite" # Default model for speed
+GEMINI_EVALUATION_MODEL = "gemini-2.0-flash-lite" # Model for evaluation tasks
 
 # Evolutionary Parameters (examples)
-POPULATION_SIZE = 10  # Number of individuals in each generation
-GENERATIONS = 10       # Number of generations to run
-ELITISM_COUNT = 2     # Number of best individuals to carry over to the next generation
+POPULATION_SIZE = 3  # Number of individuals in each generation
+GENERATIONS = 2       # Number of generations to run the evolution
+ELITISM_COUNT = 1     # Number of best individuals to carry over to the next generation
 MUTATION_RATE = 0.7   # Probability of mutating an individual
 CROSSOVER_RATE = 0.2  # Probability of crossing over two parents (if crossover is implemented)
 
